@@ -23,28 +23,30 @@ def get_categories_dict(in_categories_list):
         categories_dict[category] = index
     return categories_dict
 
-def train_classifier(in_training_folder):
-    (files, categories) = get_files_list(in_training_folder)
-    bags= []
-
-    for filename in files:
-        bags.append(bag_of_words.read_file_into_map(filename))
-    categories_dict = get_categories_dict(categories)
-
+def do_classification(in_train_bags, in_test_bags, in_train_answers, in_test_answers):
     vectorizer = DictVectorizer()
-    term_document_matrix = vectorizer.fit_transform(bags)
+    # builds a vocabulary out of all words in both sets
+    vectorizer.fit(in_train_bags + in_test_bags)
+    term_document_matrix = vectorizer.transform(train_bags)
     tfidf_transformer = TfidfTransformer()
     # in this matrix rows are documents, columns - features (terms' tfidf's)
     tfidf_matrix = tfidf_transformer.fit_transform(term_document_matrix)
-    classifier_answers = [categories_dict[category] for category in categories]
+    classifier_answers = [categories_dict[category] for category in in_train_answers]
 
     classifier = SVC()
     classifier.fit(tfidf_matrix, classifier_answers)
-    return classifier
-
+    classifier_predictions = classifier.predict()
 
 def perform_experiment(in_training_folder, in_testing_folder):
-    classifier = train_classifier(in_training_folder)
+    train_bags= []
+    test_bags = []
+    (train_files, train_categories) = get_files_list(in_training_folder)
+    (test_files, test_categories) = get_files_list(in_testing_folder)
+    for filename in train_files:
+        train_bags.append(bag_of_words.read_file_into_map(filename))
+    for filename in test_files:
+        test_bags.append(bag_of_words.read_file_into_map(filename))
+    do_classification(test_bags, train_bags, train_categories, test_categories)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
