@@ -1,52 +1,39 @@
 import sys
 import os
-import bag_of_words
 import itertools
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import SVC
+import numpy
+
+import bag_of_words
+import twenty_newsgroups_reader
 
 
-def get_files_list(in_root_folder):
-    result_files = []
-    result_categories = []
-    for root, folders, files in os.walk(in_root_folder, followlinks = True):
-        for filename in files:
-            result_files.append(os.path.join(root, filename))
-            result_categories.append(os.path.split(root)[1])
-    return (result_files, result_categories)
+def process_data(in_folder):
+    bags = []
+    (files, categories) = get_files_list(in_folder)
+    for filename in files:
+        bags.append(bag_of_words.read_file_into_map(filename))
+    categories_dict = get_categories_dict(categories)
+    categories_vector = [categories_dict[category] for category in categories]
 
-def get_categories_dict(in_categories_list):
-    categories_dict = {}
-    uniq_categories = set(in_categories_list)
-    for category, index in zip(uniq_categories, itertools.count()):
-        categories_dict[category] = index
-    return categories_dict
-
-def do_classification(in_train_bags, in_test_bags, in_train_answers, in_test_answers):
     vectorizer = DictVectorizer()
     # builds a vocabulary out of all words in both sets
-    vectorizer.fit(in_train_bags + in_test_bags)
-    term_document_matrix = vectorizer.transform(train_bags)
+    term_document_matrix = vectorizer.fit_transform(bags)
     tfidf_transformer = TfidfTransformer()
     # in this matrix rows are documents, columns - features (terms' tfidf's)
     tfidf_matrix = tfidf_transformer.fit_transform(term_document_matrix)
-    classifier_answers = [categories_dict[category] for category in in_train_answers]
-
-    classifier = SVC()
-    classifier.fit(tfidf_matrix, classifier_answers)
-    classifier_predictions = classifier.predict()
+    return (tfidf_matrix, categories_dict, categories_vector)
 
 def perform_experiment(in_training_folder, in_testing_folder):
-    train_bags= []
-    test_bags = []
-    (train_files, train_categories) = get_files_list(in_training_folder)
-    (test_files, test_categories) = get_files_list(in_testing_folder)
-    for filename in train_files:
-        train_bags.append(bag_of_words.read_file_into_map(filename))
-    for filename in test_files:
-        test_bags.append(bag_of_words.read_file_into_map(filename))
-    do_classification(test_bags, train_bags, train_categories, test_categories)
+    #(train_termdoc_matrix, train_answer_dict, train_answer_vector) = process_data(in_training_folder)
+    #classifier = prepare_classifier(train_termdoc_matrix, train_answer_vector)
+
+    #(test_termdoc_matrix, test_answer_dict, test_answer_vector) = process_data(in_testing_folder)
+    data_loader = twenty_newsgroups_reader.DatasetLoader(in_training_folder, in_testing_folder)
+    classifier = SVC()
+    classifier.fit(data_loader.get_term_doc_matrix('train'), data_loader.get_answers_vector('train'))
+    answers = classifier.predict(data_loader.get_term_doc_matrix('test'))
+    print numpy.mean(answers == data_loader.get_answers_vector('test'))
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
