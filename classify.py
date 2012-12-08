@@ -1,11 +1,11 @@
 import sys
 import os
 import itertools
-from sklearn.svm import SVC
 import numpy
 
 import bag_of_words
 import twenty_newsgroups_reader
+import classifier_wrapper
 
 
 def process_data(in_folder):
@@ -29,11 +29,13 @@ def perform_experiment(in_training_folder, in_testing_folder):
     #classifier = prepare_classifier(train_termdoc_matrix, train_answer_vector)
 
     #(test_termdoc_matrix, test_answer_dict, test_answer_vector) = process_data(in_testing_folder)
-    data_loader = twenty_newsgroups_reader.DatasetLoader(in_training_folder, in_testing_folder)
-    classifier = SVC()
-    classifier.fit(data_loader.get_term_doc_matrix('train'), data_loader.get_answers_vector('train'))
-    answers = classifier.predict(data_loader.get_term_doc_matrix('test'))
-    print numpy.mean(answers == data_loader.get_answers_vector('test'))
+    train_set = twenty_newsgroups_reader.DatasetLoader(in_training_folder)
+    test_set = twenty_newsgroups_reader.DatasetLoader(in_testing_folder)
+    classifier = classifier_wrapper.ClassifierWrapper()
+    classifier.train(train_set.get_bags(), train_set.get_answers_vector())
+    answers = classifier.predict(test_set.get_bags())
+
+    print numpy.mean(answers == test_set.get_answers_vector())
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

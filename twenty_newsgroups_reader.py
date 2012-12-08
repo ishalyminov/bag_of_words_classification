@@ -5,8 +5,6 @@ import re
 import os
 import itertools
 
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 import bag_of_words
 
 def get_files_list(in_root_folder):
@@ -26,44 +24,21 @@ def get_categories_dict(in_categories_list):
     return categories_dict
 
 class DatasetLoader(object):
-    def __init__(self, in_train_folder, in_test_folder):
-        self.train_root = in_train_folder
-        self.test_root = in_test_folder
-        tfidf_transformer = TfidfTransformer()
+    def __init__(self, in_texts_root):
+        self.texts_root = in_texts_root
+        (files, categories) = get_files_list(self.texts_root)
+        self.categories = categories
+        self.categories_dict = get_categories_dict(categories)
+        self.bags = self.__make_dataset_bags(files)
 
-        (train_files, train_categories) = get_files_list(in_train_folder)
-        (test_files, test_categories) = get_files_list(in_test_folder)
-
-        self.answers = {'train': train_categories, 'test': test_categories}
-        self.categories_dict = get_categories_dict(train_categories + test_categories)
-        train_bags = self.make_dataset_bags(train_files)
-        test_bags = self.make_dataset_bags(test_files)
-
-        vectorizer = self.prepare_vectorizer(train_bags, test_bags)
-
-        term_doc_train = vectorizer.transform(train_bags)
-        term_doc_test = vectorizer.transform(test_bags)
-
-        self.tfidf_matrices = {'train': tfidf_transformer.fit_transform(term_doc_train),
-                               'test': tfidf_transformer.fit_transform(term_doc_test)}
-
-    def make_dataset_bags(self, in_files):
+    def __make_dataset_bags(self, in_files):
         return [bag_of_words.read_file_into_map(filename) for filename in in_files]
 
-    def prepare_vectorizer(self, in_train_bags, in_test_bags):
-        features = {}
-        for bag in in_train_bags + in_test_bags:
-            features.update(bag)
-        vectorizer = DictVectorizer()
-        vectorizer.fit(features)
-        return vectorizer
+    def get_bags(self):
+        return self.bags
 
-    def get_term_doc_matrix(self, in_set_name):
-        return self.tfidf_matrices[in_set_name]
-
-    def get_answers_vector(self, in_set_name):
-        answers = self.answers[in_set_name]
-        return [self.categories_dict[category] for category in answers]
+    def get_answers_vector(self):
+        return [self.categories_dict[category] for category in self.categories]
 
 
 # Returns lists of word tokens free of punctuation marks
@@ -85,7 +60,6 @@ def load_text(in_file_name):
         result.append([word.lower() for word in nltk.word_tokenize(sentence) \
                        if not re.match('^[^\w]+$', word)])
     return result
-
 
 
 if __name__ == '__main__':
