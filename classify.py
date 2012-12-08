@@ -6,6 +6,7 @@ import numpy
 import bag_of_words
 import twenty_newsgroups_reader
 import classifier_wrapper
+import frequency_filtering
 
 
 def process_data(in_folder):
@@ -25,15 +26,22 @@ def process_data(in_folder):
     return (tfidf_matrix, categories_dict, categories_vector)
 
 def perform_experiment(in_training_folder, in_testing_folder):
-    #(train_termdoc_matrix, train_answer_dict, train_answer_vector) = process_data(in_training_folder)
-    #classifier = prepare_classifier(train_termdoc_matrix, train_answer_vector)
-
-    #(test_termdoc_matrix, test_answer_dict, test_answer_vector) = process_data(in_testing_folder)
     train_set = twenty_newsgroups_reader.DatasetLoader(in_training_folder)
     test_set = twenty_newsgroups_reader.DatasetLoader(in_testing_folder)
     classifier = classifier_wrapper.ClassifierWrapper()
-    classifier.train(train_set.get_bags(), train_set.get_answers_vector())
-    answers = classifier.predict(test_set.get_bags())
+
+    freq_filter = frequency_filtering.FrequencyFilter(10)
+    train_set_filtered = []
+    for bag in train_set.get_bags():
+        freq_filter.load_distribution(bag)
+        train_set_filtered.append(freq_filter.get_filtered_distribution(cut_head = 1))
+    classifier.train(train_set_filtered, train_set.get_answers_vector())
+
+    test_set_filtered = []
+    for bag in test_set.get_bags():
+        freq_filter.load_distribution(bag)
+        test_set_filtered.append(freq_filter.get_filtered_distribution(cut_head = 1))
+    answers = classifier.predict(test_set_filtered)
 
     print numpy.mean(answers == test_set.get_answers_vector())
 

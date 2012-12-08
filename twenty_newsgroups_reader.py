@@ -27,12 +27,28 @@ class DatasetLoader(object):
     def __init__(self, in_texts_root):
         self.texts_root = in_texts_root
         (files, categories) = get_files_list(self.texts_root)
-        self.categories = categories
+        all_categories = categories
         self.categories_dict = get_categories_dict(categories)
-        self.bags = self.__make_dataset_bags(files)
+        (self.bags, indices) = self.__make_dataset_bags(files)
+        self.categories = [categories[index] for index in indices]
+        #self.full_dictionary = self.__build_full_dictionary(self.bags)
 
     def __make_dataset_bags(self, in_files):
-        return [bag_of_words.read_file_into_map(filename) for filename in in_files]
+        result = []
+        file_indices = []
+        for (filename, index) in zip(in_files, itertools.count()):
+            bag = bag_of_words.read_file_into_map(filename)
+            if len(bag) >= 20:
+                result.append(bag)
+                file_indices.append(index)
+        return (result, file_indices)
+
+    def __build_full_dictionary(self, in_bags):
+        result = {}
+        for bag in in_bags:
+            result.update(in_bags.items())
+        return result
+
 
     def get_bags(self):
         return self.bags
