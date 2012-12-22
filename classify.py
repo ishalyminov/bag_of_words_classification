@@ -30,20 +30,28 @@ def perform_experiment(in_training_folder, in_testing_folder):
     test_set = twenty_newsgroups_reader.DatasetLoader(in_testing_folder)
     classifier = classifier_wrapper.ClassifierWrapper()
 
-    freq_filter = frequency_filtering.FrequencyFilter(10)
+    freq_filter = frequency_filtering.FrequencyChunkFilter()
     train_set_filtered = []
-    for bag in train_set.get_bags():
-        freq_filter.load_distribution(bag)
-        train_set_filtered.append(freq_filter.get_filtered_distribution())
-    classifier.train(train_set_filtered, train_set.get_answers_vector())
+    train_answers = []
+    for (bag, answer) in zip(train_set.get_bags(), train_set.get_answers_vector()):
+        freq_filter.load_distribution(bag, 10)
+        bag_filtered = freq_filter.get_filtered_distribution(cut_tail = 1)
+        if len(bag_filtered):
+            train_set_filtered.append(bag_filtered)
+            train_answers.append(answer)
+    classifier.train(train_set_filtered, train_answers)
 
     test_set_filtered = []
-    for bag in test_set.get_bags():
-        freq_filter.load_distribution(bag)
-        test_set_filtered.append(freq_filter.get_filtered_distribution())
+    test_answers = []
+    for (bag, answer) in zip(test_set.get_bags(), test_set.get_answers_vector()):
+        freq_filter.load_distribution(bag, 10)
+        bag_filtered = freq_filter.get_filtered_distribution(cut_tail = 1)
+        if len(bag_filtered):
+            test_set_filtered.append(bag_filtered)
+            test_answers.append(answer)
     answers = classifier.predict(test_set_filtered)
 
-    print numpy.mean(answers == test_set.get_answers_vector())
+    print numpy.mean(answers == test_answers)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
