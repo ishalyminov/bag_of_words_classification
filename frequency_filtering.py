@@ -10,6 +10,8 @@ class FrequencyFilter(object):
 
     def __slice_frequencies(self, in_distribution):
         uniq_frequencies = sorted(set(in_distribution.values()))
+        min_freq = min(uniq_frequencies)
+        max_freq = max(uniq_frequencies)
         freqs_number = len(uniq_frequencies)
         chunks_number = min(self.frequency_chunks_number, freqs_number)
         if not chunks_number:

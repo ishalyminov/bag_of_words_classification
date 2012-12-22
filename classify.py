@@ -34,13 +34,13 @@ def perform_experiment(in_training_folder, in_testing_folder):
     train_set_filtered = []
     for bag in train_set.get_bags():
         freq_filter.load_distribution(bag)
-        train_set_filtered.append(freq_filter.get_filtered_distribution(cut_head = 1))
+        train_set_filtered.append(freq_filter.get_filtered_distribution())
     classifier.train(train_set_filtered, train_set.get_answers_vector())
 
     test_set_filtered = []
     for bag in test_set.get_bags():
         freq_filter.load_distribution(bag)
-        test_set_filtered.append(freq_filter.get_filtered_distribution(cut_head = 1))
+        test_set_filtered.append(freq_filter.get_filtered_distribution())
     answers = classifier.predict(test_set_filtered)
 
     print numpy.mean(answers == test_set.get_answers_vector())
