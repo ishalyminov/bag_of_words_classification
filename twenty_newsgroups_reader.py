@@ -13,7 +13,7 @@ def get_files_list(in_root_folder):
     for root, folders, files in os.walk(in_root_folder, followlinks = True):
         for filename in files:
             result_files.append(os.path.join(root, filename))
-            result_categories.append(os.path.split(root)[1])
+            result_categories.append(os.path.basename(root))
     return (result_files, result_categories)
 
 def get_categories_dict(in_categories_list):
