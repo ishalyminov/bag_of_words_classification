@@ -6,7 +6,7 @@ import numpy
 import bag_of_words
 import twenty_newsgroups_reader
 import classifier_wrapper
-import frequency_filtering
+import frequency_chunking
 
 
 def process_data(in_folder):
@@ -25,17 +25,15 @@ def process_data(in_folder):
     tfidf_matrix = tfidf_transformer.fit_transform(term_document_matrix)
     return (tfidf_matrix, categories_dict, categories_vector)
 
-def perform_experiment(in_training_folder, in_testing_folder):
-    train_set = twenty_newsgroups_reader.DatasetLoader(in_training_folder)
-    test_set = twenty_newsgroups_reader.DatasetLoader(in_testing_folder)
+def classify_texts(in_train_dataset,
+                   in_test_dataset,
+                   in_filter_policy):
     classifier = classifier_wrapper.ClassifierWrapper()
 
-    freq_filter = frequency_filtering.FrequencyChunkFilter()
     train_set_filtered = []
     train_answers = []
-    for (bag, answer) in zip(train_set.get_bags(), train_set.get_answers_vector()):
-        freq_filter.load_distribution(bag, 10)
-        bag_filtered = freq_filter.get_filtered_distribution(cut_tail = 1)
+    for (bag, answer) in zip(in_train_dataset.get_bags(), in_train_dataset.get_answers_vector()):
+        bag_filtered = in_filter_policy.filter_distribution(bag)
         if len(bag_filtered):
             train_set_filtered.append(bag_filtered)
             train_answers.append(answer)
@@ -43,17 +41,16 @@ def perform_experiment(in_training_folder, in_testing_folder):
 
     test_set_filtered = []
     test_answers = []
-    for (bag, answer) in zip(test_set.get_bags(), test_set.get_answers_vector()):
-        freq_filter.load_distribution(bag, 10)
-        bag_filtered = freq_filter.get_filtered_distribution(cut_tail = 1)
+    for (bag, answer) in zip(in_test_dataset.get_bags(), in_test_dataset.get_answers_vector()):
+        bag_filtered = in_filter_policy.filter_distribution(bag)
         if len(bag_filtered):
             test_set_filtered.append(bag_filtered)
             test_answers.append(answer)
-    answers = classifier.predict(test_set_filtered)
 
-    print numpy.mean(answers == test_answers)
+    answers = classifier.predict(test_set_filtered)
+    return numpy.mean(answers == test_answers)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         exit('Usage: classify.py <training data folder> <testing data root>')
-    perform_experiment(sys.argv[1], sys.argv[2])
+    # print classify_texts(sys.argv[1], sys.argv[2], frequency_chunking.FrequencyChunkFilter())

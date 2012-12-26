@@ -56,9 +56,11 @@ class FrequencyChunkFilter(object):
 
     # cut_head, cut_tail are the numbers of chunk to cut 
     # from the head and tail of the distribution respectively
-    def get_filtered_distribution(self, cut_head = None, cut_tail = 0):
+    def get_filtered_distribution(self, cut_head = 0, cut_tail = 0):
         result = {}
-        if cut_head:
+        if cut_head == 0:
+            cut_head = None
+        else:
             cut_head = -cut_head
         # distribution tail == low frequencies == partitioning begin
         # distribution tail == high frequencies == partitioning end
