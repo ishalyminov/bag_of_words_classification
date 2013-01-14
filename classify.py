@@ -3,20 +3,22 @@ import os
 import itertools
 import numpy
 
+import text_reading
+import text_reading.twenty_newsgroups
+import text_reading.ruscorpora
+import dataset_loading
 import bag_of_words
-import twenty_newsgroups_dataset
-import ruscorpora_dataset
 import classifier_wrapper
 import frequency_chunking
 
 
 def process_data(in_folder, in_sentences_extractor):
     bags = []
-    (files, categories) = get_files_list(in_folder)
+    (files, categories) = dataset_loading.get_files_list(in_folder)
     for filename in files:
-        sentences = in_sentences_extractor.get_text(filename)
-        bags.append(bag_of_words.sentences_to_bags_of_words(sentences))
-    categories_dict = get_categories_dict(categories)
+        sentences = in_sentences_extractor(filename)
+        bags.append(bag_of_words.sentences_to_bag_of_words(sentences))
+    categories_dict = dataset_loading.get_categories_dict(categories)
     categories_vector = [categories_dict[category] for category in categories]
 
     vectorizer = DictVectorizer()
@@ -54,17 +56,17 @@ def classify_texts(in_train_dataset,
 def perform_classification(in_train_data, in_test_data, in_dataset_type):
     sentences_extractor = None
     if in_dataset_type == '20newsgroups':
-        sentences_extractor = getattr(read_text.twenty_newsgroups, 'load_text')
+        sentences_extractor = getattr(text_reading.twenty_newsgroups, 'load_text')
     elif in_dataset_type == 'ruscorpora':
-        sentences_extractor = getattr(read_text.ruscorpora, 'get_text_raw')
-    train_dataset = process_data(in_train_data, sentences_extractor)
-    test_dataset = process_data(in_test_data, sentences_extractor)
-    return classify(train_dataset, test_dataset, frequency_chunking.FrequencyChunkFilter())
+        sentences_extractor = getattr(text_reading.ruscorpora, 'get_text_raw')
+    train_dataset = dataset_loading.DatasetLoader(in_train_data, sentences_extractor) #process_data(in_train_data, sentences_extractor)
+    test_dataset = dataset_loading.DatasetLoader(in_test_data, sentences_extractor) # process_data(in_test_data, sentences_extractor)
+    return classify_texts(train_dataset, test_dataset, frequency_chunking.FrequencyChunkFilter())
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         exit('Usage: classify.py <training data folder> <testing data root> [ruscorpora|20newsgroups = default]')
     dataset = '20newsgroups'
     if len(sys.argv) == 4:
-        dataset = sys.argv[4]
+        dataset = sys.argv[3]
     print perform_classification(sys.argv[1], sys.argv[2], dataset)

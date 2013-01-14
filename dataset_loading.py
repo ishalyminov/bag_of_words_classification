@@ -38,7 +38,7 @@ class DatasetLoader(object):
         result = []
         file_indices = []
         for (filename, index) in zip(in_files, itertools.count()):
-            sentences = self.sentences_extractor.get_text(filename)
+            sentences = self.sentences_extractor(filename)
             bag = bag_of_words.sentences_to_bag_of_words(sentences)
             if len(bag) >= 20:
                 result.append(bag)
