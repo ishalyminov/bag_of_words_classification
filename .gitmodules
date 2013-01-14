@@ -1,0 +1,3 @@
+[submodule "text_reading"]
+	path = text_reading
+	url = https://github.com/ishalyminov/text_reading.git

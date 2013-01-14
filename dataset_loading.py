@@ -24,8 +24,9 @@ def get_categories_dict(in_categories_list):
     return categories_dict
 
 class DatasetLoader(object):
-    def __init__(self, in_texts_root):
+    def __init__(self, in_texts_root, in_sentences_extractor):
         self.texts_root = in_texts_root
+        self.sentences_extractor = in_sentences_extractor
         (files, categories) = get_files_list(self.texts_root)
         all_categories = categories
         self.categories_dict = get_categories_dict(categories)
@@ -37,7 +38,8 @@ class DatasetLoader(object):
         result = []
         file_indices = []
         for (filename, index) in zip(in_files, itertools.count()):
-            bag = bag_of_words.read_file_into_map(filename)
+            sentences = self.sentences_extractor.get_text(filename)
+            bag = bag_of_words.sentences_to_bag_of_words(sentences)
             if len(bag) >= 20:
                 result.append(bag)
                 file_indices.append(index)
@@ -55,28 +57,6 @@ class DatasetLoader(object):
 
     def get_answers_vector(self):
         return [self.categories_dict[category] for category in self.categories]
-
-
-# Returns lists of word tokens free of punctuation marks
-def load_text(in_file_name):
-    in_file = open(in_file_name)
-    from_line = in_file.readline().strip()
-    subject_line = in_file.readline().strip()
-    organization_line = in_file.readline().strip()
-    lines_number_line = in_file.readline().strip()
-
-    text = []
-    for line in in_file:
-        # for various email quotations
-        line = line.lstrip(string.punctuation)
-        text.append(line.strip())
-    # tokenized punctuation-free sentences
-    result = []
-    for sentence in nltk.sent_tokenize(' '.join(text)):
-        result.append([word.lower() for word in nltk.word_tokenize(sentence) \
-                       if not re.match('^[^\w]+$', word)])
-    return result
-
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
