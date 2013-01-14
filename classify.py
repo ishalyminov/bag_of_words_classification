@@ -54,9 +54,9 @@ def classify_texts(in_train_dataset,
 def perform_classification(in_train_data, in_test_data, in_dataset_type):
     sentences_extractor = None
     if in_dataset_type == '20newsgroups':
-        sentences_extractor = getattr(read_text.twenty_newsgroups, 'get_text')
+        sentences_extractor = getattr(read_text.twenty_newsgroups, 'load_text')
     elif in_dataset_type == 'ruscorpora':
-        sentences_extractor = getattr(read_text.ruscorpora, 'get_text')
+        sentences_extractor = getattr(read_text.ruscorpora, 'get_text_raw')
     train_dataset = process_data(in_train_data, sentences_extractor)
     test_dataset = process_data(in_test_data, sentences_extractor)
     return classify(train_dataset, test_dataset, frequency_chunking.FrequencyChunkFilter())
