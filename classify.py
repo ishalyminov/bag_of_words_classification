@@ -40,6 +40,7 @@ def classify_texts(in_train_dataset,
         if len(bag_filtered):
             train_set_filtered.append(bag_filtered)
             train_answers.append(answer)
+    print >>sys.stderr, 'Train set size: %d' % len(train_answers)
     classifier.train(train_set_filtered, train_answers)
 
     test_set_filtered = []
@@ -49,6 +50,7 @@ def classify_texts(in_train_dataset,
         if len(bag_filtered):
             test_set_filtered.append(bag_filtered)
             test_answers.append(answer)
+    print >>sys.stderr, 'Test set size: %d' % len(test_answers)
 
     answers = classifier.predict(test_set_filtered)
     return numpy.mean(answers == test_answers)

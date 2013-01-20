@@ -1,9 +1,15 @@
 import sys
+import nltk.corpus
 
 import classify
 import frequency_chunking
 import twenty_newsgroups_reader
+import text_reading
+import text_reading.twenty_newsgroups
+import text_reading.ruscorpora
+import dataset_loading
 
+REMOVE_STOPWORDS = True
 def tail_cutting_experiment(in_train_set, in_test_set):
     for chunks_number in xrange(15):
         freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_cut_tail = chunks_number)
@@ -43,12 +49,32 @@ def chunk_window_experiment(in_train_set, in_test_set):
 if __name__ == '__main__':
     if len(sys.argv) < 4:
         exit('Usage: frequency_chunk_experiment.py \
-             <head|tail|window> <training data folder> <testing data root>')
-    train_set = twenty_newsgroups_reader.DatasetLoader(sys.argv[2])
-    test_set = twenty_newsgroups_reader.DatasetLoader(sys.argv[3])
+             <head|tail|window> <training data folder> <testing data root> \
+             [dataset=ruscorpora|20newsgroups]')
+
+    dataset_type = None
+    if len(sys.argv) == 5:
+        dataset_type = sys.argv[4]
+    sentences_extractor = None
+    stop_list = []
+    if dataset_type == '20newsgroups':
+        sentences_extractor = getattr(text_reading.twenty_newsgroups, 'load_text_raw')
+        if REMOVE_STOPWORDS:
+            stop_list = [word for word in nltk.corpus.stopwords.words('english')]
+    elif dataset_type == 'ruscorpora':
+        sentences_extractor = getattr(text_reading.ruscorpora, 'get_text_raw')
+        if REMOVE_STOPWORDS:
+            stop_list = [word.decode('utf-8') for word in nltk.corpus.stopwords.words('russian')]
+    train_dataset = dataset_loading.DatasetLoader(sys.argv[2],
+                                                  sentences_extractor,
+                                                  in_stop_list = stop_list)
+    test_dataset = dataset_loading.DatasetLoader(sys.argv[3],
+                                                 sentences_extractor,
+                                                 in_stop_list = stop_list)
+
     if sys.argv[1] == 'head':
-        head_cutting_experiment(train_set, test_set)
+        head_cutting_experiment(train_dataset, test_dataset)
     elif sys.argv[1] == 'tail':
-        tail_cutting_experiment(train_set, test_set)
+        tail_cutting_experiment(train_dataset, test_dataset)
     elif sys.argv[1] == 'window':
-        chunk_window_experiment(train_set, test_set)
+        chunk_window_experiment(train_dataset, test_dataset)

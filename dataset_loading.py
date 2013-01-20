@@ -24,9 +24,10 @@ def get_categories_dict(in_categories_list):
     return categories_dict
 
 class DatasetLoader(object):
-    def __init__(self, in_texts_root, in_sentences_extractor):
+    def __init__(self, in_texts_root, in_sentences_extractor, in_stop_list = []):
         self.texts_root = in_texts_root
         self.sentences_extractor = in_sentences_extractor
+        self.stop_list = in_stop_list
         (files, categories) = get_files_list(self.texts_root)
         all_categories = categories
         self.categories_dict = get_categories_dict(categories)
@@ -39,7 +40,10 @@ class DatasetLoader(object):
         file_indices = []
         for (filename, index) in zip(in_files, itertools.count()):
             sentences = self.sentences_extractor(filename)
-            bag = bag_of_words.sentences_to_bag_of_words(sentences)
+            sentences_filtered = []
+            for raw_sentence in sentences:
+                sentences_filtered.append([word for word in raw_sentence if word not in self.stop_list])
+            bag = bag_of_words.sentences_to_bag_of_words(sentences_filtered)
             if len(bag) >= 20:
                 result.append(bag)
                 file_indices.append(index)
