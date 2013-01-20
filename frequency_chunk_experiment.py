@@ -9,16 +9,18 @@ import text_reading.twenty_newsgroups
 import text_reading.ruscorpora
 import dataset_loading
 
-REMOVE_STOPWORDS = True
+REMOVE_STOPWORDS = False
 def tail_cutting_experiment(in_train_set, in_test_set):
-    for chunks_number in xrange(15):
-        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_cut_tail = chunks_number)
+    for chunks_number in xrange(4):
+        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_chunks_number = 10, \
+                                                                    in_cut_tail = chunks_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_chunk_filter)
         print '%d tail chunks cut: classification quality = %f' % (chunks_number, quality)
 
 def head_cutting_experiment(in_train_set, in_test_set):
-    for chunks_number in xrange(15):
-        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_cut_head = chunks_number)
+    for chunks_number in xrange(4):
+        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_chunks_number = 10,
+                                                                    in_cut_head = chunks_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_chunk_filter)
         print '%d head chunks cut: classification quality = %f' % (chunks_number, quality)
 
