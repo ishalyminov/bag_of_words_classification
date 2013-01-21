@@ -12,14 +12,14 @@ import dataset_loading
 REMOVE_STOPWORDS = False
 def tail_cutting_experiment(in_train_set, in_test_set):
     for chunks_number in xrange(4):
-        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_chunks_number = 10, \
+        freq_chunk_filter = frequency_chunking.FrequencyChunkFilterWrapper(in_chunks_number = 10, \
                                                                     in_cut_tail = chunks_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_chunk_filter)
         print '%d tail chunks cut: classification quality = %f' % (chunks_number, quality)
 
 def head_cutting_experiment(in_train_set, in_test_set):
     for chunks_number in xrange(4):
-        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_chunks_number = 10,
+        freq_chunk_filter = frequency_chunking.FrequencyChunkFilterWrapper(in_chunks_number = 10,
                                                                     in_cut_head = chunks_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_chunk_filter)
         print '%d head chunks cut: classification quality = %f' % (chunks_number, quality)
@@ -42,7 +42,7 @@ def chunk_window_experiment(in_train_set, in_test_set):
         cut_tail = frequency_chunking.DEFAULT_CHUNKS_NUMBER - begin_chunk - window_size
         #(cut_left, cut_right) = get_filtered_distribution_test(cut_head, cut_tail)
         # print "%d,%d --> [%s:%s]" % (cut_head, cut_tail, cut_left, cut_right)
-        freq_chunk_filter = frequency_chunking.FrequencyChunkFilter(in_cut_head = cut_head,
+        freq_chunk_filter = frequency_chunking.FrequencyChunkFilterWrapper(in_cut_head = cut_head,
                                                                     in_cut_tail = cut_tail)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_chunk_filter)
         print '%d -- %d chunks used: classification quality = %f' % \

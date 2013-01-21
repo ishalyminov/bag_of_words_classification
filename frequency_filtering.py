@@ -46,7 +46,6 @@ class FrequencyRangePartitioner(object):
     def get_partitioned_words(self):
         return self.words_split
 
-
 class FrequencyChunkFilter(object):
     def __init__(self):
         self.partitioner = FrequencyRangePartitioner()
@@ -70,3 +69,19 @@ class FrequencyChunkFilter(object):
             for word in words_chunk:
                 result[word] = self.distribution[word]
         return result
+
+class FrequencyGroupFilter(object):
+    def load_distribution(self, in_distribution):
+        self.distribution = copy.deepcopy(in_distribution)
+        self.frequency_groups = sorted(set(self.distribution.values()), reverse = True)
+
+    def get_filtered_distribution(self, cut_head = 0, cut_tail = 0):
+        if cut_tail == 0:
+            cut_tail = None
+        else:
+            cut_tail = -cut_tail
+        filtered_frequency_groups = set(self.frequency_groups[cut_head:cut_tail])
+        result = {word: frequency for (word, frequency) in self.distribution.iteritems() \
+                  if frequency in filtered_frequency_groups}
+        return result
+
