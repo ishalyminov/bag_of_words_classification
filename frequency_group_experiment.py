@@ -1,20 +1,24 @@
 import sys
+import  nltk
 
 import frequency_chunking
 import dataset_loading
+import text_reading.twenty_newsgroups
+import text_reading.ruscorpora
+import classify
 
-REMOVE_STOPWORDS = False
+REMOVE_STOPWORDS = True
 
 def tail_cutting_experiment(in_train_set, in_test_set):
     for groups_number in xrange(4):
-        freq_group_filter = 
+        freq_group_filter = \
             frequency_chunking.FrequencyGroupFilterWrapper(in_cut_tail = groups_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_group_filter)
         print '%d tail groups cut: classification quality = %f' % (groups_number, quality)
 
 def head_cutting_experiment(in_train_set, in_test_set):
     for groups_number in xrange(4):
-        freq_group_filter = 
+        freq_group_filter = \
             frequency_chunking.FrequencyGroupFilterWrapper(in_cut_head = groups_number)
         quality = classify.classify_texts(in_train_set, in_test_set, freq_group_filter)
         print '%d head groups cut: classification quality = %f' % (groups_number, quality)

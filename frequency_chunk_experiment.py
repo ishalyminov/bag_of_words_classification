@@ -9,7 +9,7 @@ import text_reading.twenty_newsgroups
 import text_reading.ruscorpora
 import dataset_loading
 
-REMOVE_STOPWORDS = False
+REMOVE_STOPWORDS = True
 def tail_cutting_experiment(in_train_set, in_test_set):
     for chunks_number in xrange(4):
         freq_chunk_filter = frequency_chunking.FrequencyChunkFilterWrapper(in_chunks_number = 10, \
